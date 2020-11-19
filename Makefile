@@ -2,7 +2,11 @@ VERSION = edge
 TAG = $(VERSION)
 PREFIX = nginx/nginx-ingress
 NGINX_VERSION = 1.19.3
+<<<<<<< HEAD
 GOLANG_CONTAINER = golang:1.15-alpine
+=======
+GOLANG_CONTAINER = golang:1.15
+>>>>>>> Consolidate Dockerfile and Makefile
 GOFLAGS ?= -mod=vendor
 TARGET ?= local
 
@@ -16,7 +20,11 @@ export DOCKER_BUILDKIT = 1
 .DEFAULT_GOAL:=help
 
 .PHONY: help
+<<<<<<< HEAD
 help: ## Display this help
+=======
+help: ## Dispaly this help
+>>>>>>> Consolidate Dockerfile and Makefile
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 all: test lint verify-codegen update-crds build debian-image
