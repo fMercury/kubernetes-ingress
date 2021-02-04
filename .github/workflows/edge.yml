@@ -97,42 +97,49 @@ jobs:
       matrix:
         include:
           - os: ubuntu-18.04
+            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-ingress
             build_os: debian
             type: oss
           - os: ubuntu-18.04
+            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-ingress-alpine
             build_os: alpine
             type: oss
           - os: ubuntu-18.04
+            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-plus-ingress
             build_os: debian-plus
             type: plus
           - os: ubuntu-18.04
+            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-ingress-opentracing
             build_os: opentracing
             type: oss
           - os: ubuntu-18.04
+            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-plus-ingress-opentracing
             build_os: opentracing-plus
             type: plus
           - os: ubuntu-18.04
+            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-ingress-openshift
             build_os: openshift
             type: oss
           - os: ubuntu-18.04
+            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-plus-ingress-openshift
@@ -173,6 +180,7 @@ jobs:
       - name: Build Docker Image ${{ matrix.image }}
         uses: docker/build-push-action@v2
         with:
+          file: ${{ matrix.file }}
           context: ${{ matrix.context }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
@@ -186,6 +194,7 @@ jobs:
       - name: Build Plus Docker Image ${{ matrix.image }}
         uses: docker/build-push-action@v2
         with:
+          file: ${{ matrix.file }}
           context: ${{ matrix.context }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
