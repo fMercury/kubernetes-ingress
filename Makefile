@@ -42,7 +42,6 @@ update-crds: ## Update CRDs
 	go run sigs.k8s.io/controller-tools/cmd/controller-gen crd:crdVersions=v1 schemapatch:manifests=./deployments/common/crds/ paths=./pkg/apis/configuration/... output:dir=./deployments/common/crds
 	go run sigs.k8s.io/controller-tools/cmd/controller-gen crd:crdVersions=v1beta1,preserveUnknownFields=false schemapatch:manifests=./deployments/common/crds-v1beta1/ paths=./pkg/apis/configuration/... output:dir=./deployments/common/crds-v1beta1
 	@cp -Rp deployments/common/crds-v1beta1/ deployments/helm-chart/crds
-endif
 
 .PHONY: certificate-and-key
 certificate-and-key: ## Create default cert and key
@@ -82,11 +81,11 @@ openshift-image-nap-plus: ## Create Docker image for Ingress Controller (openshi
 
 .PHONY: debian-image-opentracing
 debian-image-opentracing: ## Create Docker image for Ingress Controller (with opentracing)
-	docker build $(DOCKER_BUILD_OPTIONS) --target $(TARGET) -f build/DockerfileWithOpentracing -t $(PREFIX):$(TAG) .
+	$(DOCKER_CMD) --build-arg BUILD_OS=opentracing
 
 .PHONY: debian-image-opentracing-plus
 debian-image-opentracing-plus: ## Create Docker image for Ingress Controller (with opentracing and plus)
-	docker build $(DOCKER_BUILD_OPTIONS) --target $(TARGET) --secret id=nginx-repo.crt,src=nginx-repo.crt --secret id=nginx-repo.key,src=nginx-repo.key -f build/DockerfileWithOpentracingForPlus -t $(PREFIX):$(TAG) .
+	$(DOCKER_CMD) --build-arg BUILD_OS=opentracing-plus --build-arg PLUS=-plus --secret id=nginx-repo.crt,src=nginx-repo.crt --secret id=nginx-repo.key,src=nginx-repo.key
 
 .PHONY: push
 push: ## Docker push to $PREFIX and $TAG

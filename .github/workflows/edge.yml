@@ -100,48 +100,56 @@ jobs:
             context: '.'
             target: local
             image: nginx-ingress
+            build_os: debian
             type: oss
           - os: ubuntu-18.04
-            file: build/DockerfileForAlpine
+            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-ingress-alpine
+            build_os: alpine
             type: oss
           - os: ubuntu-18.04
-            file: build/DockerfileForPlus
+            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-plus-ingress
+            build_os: debian-plus
             type: plus
           - os: ubuntu-18.04
-            file: build/DockerfileWithOpentracing
+            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-ingress-opentracing
+            build_os: opentracing
             type: oss
           - os: ubuntu-18.04
-            file: build/DockerfileWithOpentracingForPlus
+            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-plus-ingress-opentracing
+            build_os: opentracing-plus
             type: plus
           - os: ubuntu-18.04
-            file: build/openshift/Dockerfile
+            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-ingress-openshift
+            build_os: openshift
             type: oss
           - os: ubuntu-18.04
-            file: build/openshift/DockerfileForPlus
+            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-plus-ingress-openshift
+            build_os: openshift-plus
             type: plus
           - os: ubuntu-18.04
-            file: build/appprotect/DockerfileWithAppProtectForPlus
+            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-plus-ingress-ap
+            build_os: debian-plus-ap
             type: plus-ap
           - os: ubuntu-18.04
             file: build/appprotect/DockerfileWithAppProtectForPlusForOpenShift
@@ -177,6 +185,8 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache
           target: ${{ matrix.target }}
           tags: ${{ matrix.image }}:${{ github.sha }}
+          build-args: |
+            BUILD_OS=${{ matrix.build_os }}
         if: matrix.type == 'oss'
       - name: Build Plus Docker Image ${{ matrix.image }}
         uses: docker/build-push-action@v2
@@ -190,6 +200,9 @@ jobs:
           secrets: |
             nginx-repo.crt=${{ secrets.NGINX_CRT }}
             nginx-repo.key=${{ secrets.NGINX_KEY }}
+          build-args: |
+            BUILD_OS=${{ matrix.build_os }}
+            PLUS=-plus
         if: matrix.type == 'plus'
       - name: Build AP Docker Image ${{ matrix.image }}
         uses: docker/build-push-action@v2
@@ -204,6 +217,9 @@ jobs:
             nginx-repo.crt=${{ secrets.NGINX_AP_CRT }}
             nginx-repo.key=${{ secrets.NGINX_AP_KEY }}
             rhel_license=${{ secrets.RHEL_LICENSE }}
+          build-args: |
+            BUILD_OS=${{ matrix.build_os }}
+            PLUS=-plus
         if: matrix.type == 'plus-ap' || matrix.type == 'plus-ap-openshift'
 
   smoke-tests:
