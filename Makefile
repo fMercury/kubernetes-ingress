@@ -1,12 +1,10 @@
 VERSION = edge
 TAG = $(VERSION)
 PREFIX = nginx/nginx-ingress
-NGINX_VERSION = 1.19.3
-GOLANG_CONTAINER = golang:1.15-alpine
 GOFLAGS ?= -mod=vendor
 TARGET ?= local
 
-DOCKER_BUILD_OPTIONS = --build-arg IC_VERSION=$(VERSION)-$(GIT_COMMIT) --build-arg GIT_COMMIT=$(GIT_COMMIT) --build-arg VERSION=$(VERSION) --build-arg GOLANG_CONTAINER=$(GOLANG_CONTAINER) --build-arg NGINX_VERSION=$(NGINX_VERSION)
+DOCKER_BUILD_OPTIONS = --build-arg IC_VERSION=$(VERSION)-$(GIT_COMMIT) --build-arg GIT_COMMIT=$(GIT_COMMIT) --build-arg VERSION=$(VERSION)
 DOCKER_CMD = docker build $(DOCKER_BUILD_OPTIONS) --target $(TARGET) -f build/Dockerfile -t $(PREFIX):$(TAG) .
 
 GIT_COMMIT = $(shell git rev-parse --short HEAD)

@@ -30,8 +30,6 @@ defaults:
 
 env:
   DOCKER_BUILDKIT: 1
-  GOLANG_VERSION: 1.15
-  NGINX_VERSION: 1.19.6
   K8S_VERSION: 1.20.0
   K8S_TIMEOUT: 75s
   HELM_CHART_DIR: deployments/helm-chart
@@ -100,57 +98,49 @@ jobs:
             file: build/Dockerfile
             context: '.'
             target: local
-            image: nginx-ingress
-            build_os: debian
+            image: debian
             type: oss
           - os: ubuntu-18.04
             file: build/Dockerfile
             context: '.'
             target: local
-            image: nginx-ingress-alpine
-            build_os: alpine
+            image: alpine
             type: oss
           - os: ubuntu-18.04
             file: build/Dockerfile
             context: '.'
             target: local
-            image: nginx-plus-ingress
-            build_os: debian-plus
+            image: debian-plus
             type: plus
           - os: ubuntu-18.04
             file: build/Dockerfile
             context: '.'
             target: local
-            image: nginx-ingress-opentracing
-            build_os: opentracing
+            image: opentracing
             type: oss
           - os: ubuntu-18.04
             file: build/Dockerfile
             context: '.'
             target: local
-            image: nginx-plus-ingress-opentracing
-            build_os: opentracing-plus
+            image: opentracing-plus
             type: plus
           - os: ubuntu-18.04
             file: build/Dockerfile
             context: '.'
             target: local
-            image: nginx-ingress-openshift
-            build_os: openshift
+            image: openshift
             type: oss
           - os: ubuntu-18.04
             file: build/Dockerfile
             context: '.'
             target: local
-            image: nginx-plus-ingress-openshift
-            build_os: openshift-plus
+            image: openshift-plus
             type: plus
           - os: ubuntu-18.04
             file: build/Dockerfile
             context: '.'
             target: local
-            image: nginx-plus-ingress-ap
-            build_os: debian-plus-ap
+            image: debian-plus-ap
             type: plus-ap
           - os: ubuntu-18.04
             file: build/DockerfileWithAppProtectForPlusForOpenShift
@@ -187,9 +177,7 @@ jobs:
           target: ${{ matrix.target }}
           tags: ${{ matrix.image }}:${{ github.sha }}
           build-args: |
-            BUILD_OS=${{ matrix.build_os }}
-            NGINX_VERSION=${{ env.NGINX_VERSION }}
-            GOLANG_CONTAINER=${{ env.GOLANG_VERSION }}-alpine
+            BUILD_OS=${{ matrix.image }}
         if: matrix.type == 'oss'
       - name: Build Plus Docker Image ${{ matrix.image }}
         uses: docker/build-push-action@v2
@@ -204,10 +192,8 @@ jobs:
             nginx-repo.crt=${{ secrets.NGINX_CRT }}
             nginx-repo.key=${{ secrets.NGINX_KEY }}
           build-args: |
-            BUILD_OS=${{ matrix.build_os }}
+            BUILD_OS=${{ matrix.image }}
             PLUS=-plus
-            NGINX_VERSION=${{ env.NGINX_VERSION }}
-            GOLANG_CONTAINER=${{ env.GOLANG_VERSION }}-alpine
         if: matrix.type == 'plus'
       - name: Build AP Docker Image ${{ matrix.image }}
         uses: docker/build-push-action@v2
@@ -223,10 +209,8 @@ jobs:
             nginx-repo.key=${{ secrets.NGINX_AP_KEY }}
             rhel_license=${{ secrets.RHEL_LICENSE }}
           build-args: |
-            BUILD_OS=${{ matrix.build_os }}
+            BUILD_OS=${{ matrix.image }}
             PLUS=-plus
-            NGINX_VERSION=${{ env.NGINX_VERSION }}
-            GOLANG_CONTAINER=${{ env.GOLANG_VERSION }}-alpine
         if: matrix.type == 'plus-ap' || matrix.type == 'plus-ap-openshift'
 
   smoke-tests:
@@ -241,55 +225,55 @@ jobs:
         include:
           - os: ubuntu-18.04
             file: build/Dockerfile
-            image: nginx-ingress
+            image: debian
             tag: ${{ github.sha }}
             marker: 'ingresses'
             type: oss
           - os: ubuntu-18.04
             file: build/Dockerfile
-            image: nginx-ingress
+            image: debian
             tag: ${{ github.sha }}
             marker: 'vsr'
             type: oss
           - os: ubuntu-18.04
             file: build/Dockerfile
-            image: nginx-ingress
+            image: debian
             tag: ${{ github.sha }}
             marker: 'vs'
             type: oss
           - os: ubuntu-18.04
             file: build/Dockerfile
-            image: nginx-ingress
+            image: debian
             tag: ${{ github.sha }}
             marker: 'policies'
             type: oss
           - os: ubuntu-18.04
-            file: build/DockerfileForPlus
-            image: nginx-plus-ingress
+            file: build/Dockerfile
+            image: debian-plus
             tag: ${{ github.sha }}
             marker: 'ingresses'
             type: plus
           - os: ubuntu-18.04
-            file: build/DockerfileForPlus
-            image: nginx-plus-ingress
+            file: build/Dockerfile
+            image: debian-plus
             tag: ${{ github.sha }}
             marker: 'vsr'
             type: plus
           - os: ubuntu-18.04
-            file: build/DockerfileForPlus
-            image: nginx-plus-ingress
+            file: build/Dockerfile
+            image: debian-plus
             tag: ${{ github.sha }}
             marker: 'vs'
             type: plus
           - os: ubuntu-18.04
-            file: build/DockerfileForPlus
-            image: nginx-plus-ingress
+            file: build/Dockerfile
+            image: debian-plus
             tag: ${{ github.sha }}
             marker: 'policies'
             type: plus
           - os: ubuntu-18.04
             file: build/appprotect/DockerfileWithAppProtectForPlus
-            image: nginx-plus-ingress
+            image: debian-plus
             tag: ${{ github.sha }}-ap
             marker: 'appprotect'
             type: plus-ap
@@ -350,6 +334,9 @@ jobs:
           secrets: |
             nginx-repo.crt=${{ secrets.NGINX_AP_CRT }}
             nginx-repo.key=${{ secrets.NGINX_AP_KEY }}
+          build-args: |
+            BUILD_OS=${{ matrix.image }}
+            PLUS=-plus
         if: matrix.type == 'plus-ap'
       - name: Build Test-Runner Container
         uses: docker/build-push-action@v2
@@ -420,12 +407,12 @@ jobs:
         include:
           - os: ubuntu-18.04
             file: build/Dockerfile
-            image: nginx-ingress
+            image: debian
             tag: ${{ github.sha }}
             type: oss
           - os: ubuntu-18.04
-            file: build/DockerfileForPlus
-            image: nginx-plus-ingress
+            file: build/Dockerfile
+            image: debian-plus
             tag: ${{ github.sha }}
             type: plus
     steps:
@@ -460,6 +447,9 @@ jobs:
           secrets: |
             nginx-repo.crt=${{ secrets.NGINX_CRT }}
             nginx-repo.key=${{ secrets.NGINX_KEY }}
+          build-args: |
+            BUILD_OS=${{ matrix.image }}
+            PLUS=-plus
       - name: Deploy Kubernetes
         id: k8s
         run: |

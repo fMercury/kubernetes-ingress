@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.0-experimental
-ARG GOLANG_CONTAINER
-ARG NGINX_VERSION
-ARG BUILD_OS
+ARG GOLANG_CONTAINER=golang:1.15-alpine
+ARG NGINX_VERSION=1.19.6
+ARG BUILD_OS=debian
 
 ############################################# Base image for Debian #############################################
 FROM nginx:$NGINX_VERSION AS debian
