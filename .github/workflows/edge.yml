@@ -31,6 +31,7 @@ defaults:
 env:
   DOCKER_BUILDKIT: 1
   GOLANG_VERSION: 1.15
+  NGINX_VERSION: 1.19.6
   K8S_VERSION: 1.20.0
   K8S_TIMEOUT: 75s
   HELM_CHART_DIR: deployments/helm-chart
@@ -96,49 +97,42 @@ jobs:
       matrix:
         include:
           - os: ubuntu-18.04
-            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-ingress
             build_os: debian
             type: oss
           - os: ubuntu-18.04
-            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-ingress-alpine
             build_os: alpine
             type: oss
           - os: ubuntu-18.04
-            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-plus-ingress
             build_os: debian-plus
             type: plus
           - os: ubuntu-18.04
-            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-ingress-opentracing
             build_os: opentracing
             type: oss
           - os: ubuntu-18.04
-            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-plus-ingress-opentracing
             build_os: opentracing-plus
             type: plus
           - os: ubuntu-18.04
-            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-ingress-openshift
             build_os: openshift
             type: oss
           - os: ubuntu-18.04
-            file: build/Dockerfile
             context: '.'
             target: local
             image: nginx-plus-ingress-openshift
@@ -179,7 +173,6 @@ jobs:
       - name: Build Docker Image ${{ matrix.image }}
         uses: docker/build-push-action@v2
         with:
-          file: ${{ matrix.file }}
           context: ${{ matrix.context }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
@@ -187,13 +180,12 @@ jobs:
           tags: ${{ matrix.image }}:${{ github.sha }}
           build-args: |
             BUILD_OS=${{ matrix.build_os }}
-            NGINX_VERSION=1.19.3
-            GOLANG_CONTAINER=golang:1.15-alpine
+            NGINX_VERSION=${{ env.NGINX_VERSION }}
+            GOLANG_CONTAINER=${{ env.GOLANG_VERSION }}-alpine
         if: matrix.type == 'oss'
       - name: Build Plus Docker Image ${{ matrix.image }}
         uses: docker/build-push-action@v2
         with:
-          file: ${{ matrix.file }}
           context: ${{ matrix.context }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
@@ -205,8 +197,8 @@ jobs:
           build-args: |
             BUILD_OS=${{ matrix.build_os }}
             PLUS=-plus
-            NGINX_VERSION=1.19.3
-            GOLANG_CONTAINER=golang:1.15-alpine
+            NGINX_VERSION=${{ env.NGINX_VERSION }}
+            GOLANG_CONTAINER=${{ env.GOLANG_VERSION }}-alpine
         if: matrix.type == 'plus'
       - name: Build AP Docker Image ${{ matrix.image }}
         uses: docker/build-push-action@v2
@@ -224,8 +216,8 @@ jobs:
           build-args: |
             BUILD_OS=${{ matrix.build_os }}
             PLUS=-plus
-            NGINX_VERSION=1.19.3
-            GOLANG_CONTAINER=golang:1.15-alpine
+            NGINX_VERSION=${{ env.NGINX_VERSION }}
+            GOLANG_CONTAINER=${{ env.GOLANG_VERSION }}-alpine
         if: matrix.type == 'plus-ap' || matrix.type == 'plus-ap-openshift'
 
   smoke-tests:
