@@ -152,7 +152,7 @@ jobs:
             build_os: debian-plus-ap
             type: plus-ap
           - os: ubuntu-18.04
-            file: build/appprotect/DockerfileWithAppProtectForPlusForOpenShift
+            file: build/DockerfileWithAppProtectForPlusForOpenShift
             context: '.'
             target: local
             image: nginx-plus-ingress-ap-openshift
@@ -187,6 +187,8 @@ jobs:
           tags: ${{ matrix.image }}:${{ github.sha }}
           build-args: |
             BUILD_OS=${{ matrix.build_os }}
+            NGINX_VERSION=1.19.3
+            GOLANG_CONTAINER=golang:1.15-alpine
         if: matrix.type == 'oss'
       - name: Build Plus Docker Image ${{ matrix.image }}
         uses: docker/build-push-action@v2
@@ -203,6 +205,8 @@ jobs:
           build-args: |
             BUILD_OS=${{ matrix.build_os }}
             PLUS=-plus
+            NGINX_VERSION=1.19.3
+            GOLANG_CONTAINER=golang:1.15-alpine
         if: matrix.type == 'plus'
       - name: Build AP Docker Image ${{ matrix.image }}
         uses: docker/build-push-action@v2
@@ -220,6 +224,8 @@ jobs:
           build-args: |
             BUILD_OS=${{ matrix.build_os }}
             PLUS=-plus
+            NGINX_VERSION=1.19.3
+            GOLANG_CONTAINER=golang:1.15-alpine
         if: matrix.type == 'plus-ap' || matrix.type == 'plus-ap-openshift'
 
   smoke-tests:
