@@ -63,6 +63,8 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 	&& apt-get update && apt-get install -y nginx-plus=${NGINX_PLUS_VERSION} nginx-plus-module-njs=${NGINX_NJS_VERSION} \
 	&& rm -rf /var/lib/apt/lists/*
 
+COPY internal/configs/oidc/* /etc/nginx/oidc/
+
 
 ############################################# Base image for Debian with NGINX Plus and App Protect #############################################
 FROM debian-plus as debian-plus-ap-intermediate
@@ -285,8 +287,6 @@ COPY internal/configs/version1/nginx$PLUS.ingress.tmpl \
 	internal/configs/version1/nginx$PLUS.tmpl \
 	internal/configs/version2/nginx$PLUS.virtualserver.tmpl \
 	internal/configs/version2/nginx$PLUS.transportserver.tmpl /
-
-COPY internal/configs/oidc/* /etc/nginx/oidc/
 
 # Uncomment the line below if you would like to add the default.pem to the image
 # and use it as a certificate and key for the default server
