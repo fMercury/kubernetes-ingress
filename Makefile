@@ -55,7 +55,7 @@ build: ## Build Ingress Controller binary
 debian-image: ## Create Docker image for Ingress Controller (debian)
 	$(DOCKER_CMD) --build-arg BUILD_OS=debian
 
-.PHONY: verify-codegen
+.PHONY: alpine-image
 alpine-image: ## Create Docker image for Ingress Controller (alpine)
 	$(DOCKER_CMD) --build-arg BUILD_OS=alpine
 
@@ -87,6 +87,8 @@ debian-image-opentracing: ## Create Docker image for Ingress Controller (with op
 debian-image-opentracing-plus: ## Create Docker image for Ingress Controller (with opentracing and plus)
 	$(DOCKER_CMD) --build-arg BUILD_OS=opentracing-plus --build-arg PLUS=-plus --secret id=nginx-repo.crt,src=nginx-repo.crt --secret id=nginx-repo.key,src=nginx-repo.key
 
+.PHONY: all-images ## Create all the Docker images for Ingress Controller
+all-images: debian-image alpine-image debian-image-plus openshift-image debian-image-opentracing debian-image-opentracing-plus openshift-image-plus openshift-image-nap-plus debian-image-nap-plus
 .PHONY: push
 push: ## Docker push to $PREFIX and $TAG
 	docker push $(PREFIX):$(TAG)

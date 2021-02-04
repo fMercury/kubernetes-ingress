@@ -29,7 +29,8 @@ RUN apk add --no-cache libcap \
 ############################################# Base image for Debian with NGINX Plus #############################################
 FROM debian:buster-slim AS debian-plus
 ARG IC_VERSION
-ENV NGINX_PLUS_VERSION 22-1~buster
+ENV NGINX_PLUS_VERSION 23-1~buster
+ENV NGINX_NJS_VERSION 23+0.5.0-1~buster
 
 LABEL version=debian-nginx-plus-$NGINX_PLUS_VERSION-$IC_VERSION
 LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
@@ -59,7 +60,7 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 	&& echo "Acquire::https::plus-pkgs.nginx.com::SslKey      \"/etc/ssl/nginx/nginx-repo.key\";" >> /etc/apt/apt.conf.d/90nginx \
 	&& echo "Acquire::https::plus-pkgs.nginx.com::User-Agent  \"k8s-ic-$IC_VERSION-apt\";" >> /etc/apt/apt.conf.d/90nginx \
 	&& printf "deb https://plus-pkgs.nginx.com/debian buster nginx-plus\n" > /etc/apt/sources.list.d/nginx-plus.list \
-	&& apt-get update && apt-get install -y nginx-plus=${NGINX_PLUS_VERSION} \
+	&& apt-get update && apt-get install -y nginx-plus=${NGINX_PLUS_VERSION} nginx-plus-module-njs=${NGINX_NJS_VERSION} \
 	&& rm -rf /var/lib/apt/lists/*
 
 
