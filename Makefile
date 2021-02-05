@@ -47,42 +47,44 @@ certificate-and-key: ## Create default cert and key
 
 .PHONY: build
 build: ## Build Ingress Controller binary
+ifeq (${TARGET},local)
 	CGO_ENABLED=0 GO111MODULE=on GOFLAGS='$(GOFLAGS)' GOOS=linux go build -installsuffix cgo -ldflags "-w -X main.version=${VERSION} -X main.gitCommit=${GIT_COMMIT}" -o nginx-ingress github.com/nginxinc/kubernetes-ingress/cmd/nginx-ingress
+endif
 
 .PHONY: debian-image
-debian-image: ## Create Docker image for Ingress Controller (debian)
+debian-image: build ## Create Docker image for Ingress Controller (debian)
 	$(DOCKER_CMD) --build-arg BUILD_OS=debian
 
 .PHONY: alpine-image
-alpine-image: ## Create Docker image for Ingress Controller (alpine)
+alpine-image: build ## Create Docker image for Ingress Controller (alpine)
 	$(DOCKER_CMD) --build-arg BUILD_OS=alpine
 
 .PHONY: debian-image-plus
-debian-image-plus: ## Create Docker image for Ingress Controller (nginx plus)
+debian-image-plus: build ## Create Docker image for Ingress Controller (nginx plus)
 	$(DOCKER_CMD) --build-arg BUILD_OS=debian-plus --build-arg PLUS=-plus --secret id=nginx-repo.crt,src=nginx-repo.crt --secret id=nginx-repo.key,src=nginx-repo.key
 
 .PHONY: debian-image-nap-plus
-debian-image-nap-plus: ## Create Docker image for Ingress Controller (nginx plus with nap)
+debian-image-nap-plus: build ## Create Docker image for Ingress Controller (nginx plus with nap)
 	$(DOCKER_CMD) --build-arg BUILD_OS=debian-plus-ap --build-arg PLUS=-plus --secret id=nginx-repo.crt,src=nginx-repo.crt --secret id=nginx-repo.key,src=nginx-repo.key
 
 .PHONY: openshift-image
-openshift-image: ## Create Docker image for Ingress Controller (openshift)
+openshift-image: build ## Create Docker image for Ingress Controller (openshift)
 	$(DOCKER_CMD) --build-arg BUILD_OS=openshift
 
 .PHONY: openshift-image-plus
-openshift-image-plus: ## Create Docker image for Ingress Controller (openshift with plus)
-	$(DOCKER_CMD) --build-arg BUILD_OS=openshift-plus --build-arg PLUS=-plus --secret id=nginx-repo.crt,src=nginx-repo.crt --secret id=nginx-repo.key,src=nginx-repo.key --secret id=rhel_license,src=rhel_license
+openshift-image-plus: build ## Create Docker image for Ingress Controller (openshift with plus)
+	$(DOCKER_CMD) --build-arg BUILD_OS=openshift-plus --build-arg PLUS=-plus --secret id=nginx-repo.crt,src=nginx-repo.crt --secret id=nginx-repo.key,src=nginx-repo.key
 
 .PHONY: openshift-image-nap-plus
-openshift-image-nap-plus: ## Create Docker image for Ingress Controller (openshift with plus and nap)
+openshift-image-nap-plus: build ## Create Docker image for Ingress Controller (openshift with plus and nap)
 	docker build $(DOCKER_BUILD_OPTIONS) --target $(TARGET) --secret id=nginx-repo.crt,src=nginx-repo.crt --secret id=nginx-repo.key,src=nginx-repo.key --secret id=rhel_license,src=rhel_license -f build/DockerfileWithAppProtectForPlusForOpenShift -t $(PREFIX):$(TAG) .
 
 .PHONY: debian-image-opentracing
-debian-image-opentracing: ## Create Docker image for Ingress Controller (with opentracing)
+debian-image-opentracing: build ## Create Docker image for Ingress Controller (with opentracing)
 	$(DOCKER_CMD) --build-arg BUILD_OS=opentracing
 
 .PHONY: debian-image-opentracing-plus
-debian-image-opentracing-plus: ## Create Docker image for Ingress Controller (with opentracing and plus)
+debian-image-opentracing-plus: build ## Create Docker image for Ingress Controller (with opentracing and plus)
 	$(DOCKER_CMD) --build-arg BUILD_OS=opentracing-plus --build-arg PLUS=-plus --secret id=nginx-repo.crt,src=nginx-repo.crt --secret id=nginx-repo.key,src=nginx-repo.key
 
 .PHONY: all-images ## Create all the Docker images for Ingress Controller

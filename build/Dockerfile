@@ -149,7 +149,7 @@ ARG IC_VERSION
 # Install NGINX Plus
 RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode=0644 \
 	--mount=type=secret,id=nginx-repo.key,dst=/etc/ssl/nginx/nginx-repo.key,mode=0644 \
-	&& yum install -y wget ca-certificates \
+	yum install -y wget ca-certificates \
 	&& wget https://nginx.org/keys/nginx_signing.key \
 	&& \
 	NGINX_GPGKEY=nginx_signing.key; \
