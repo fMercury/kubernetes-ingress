@@ -78,7 +78,6 @@ ENV APPPROTECT_ENGINE_VERSION 5.18.0-1~buster
 ENV APPPROTECT_COMPILER_VERSION 5.18.0-1~buster
 ENV APPPROTECT_SIG_VERSION 2020.12.30-1~buster
 ENV APPPROTECT_THREAT_CAMPAIGNS_VERSION 2021.01.03-1~buster
-ENV NGINX_PLUS_RELEASE R23
 
 RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode=0644 \
 	--mount=type=secret,id=nginx-repo.key,dst=/etc/ssl/nginx/nginx-repo.key,mode=0644 \
@@ -87,13 +86,13 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 	&& apt-get install --no-install-recommends --no-install-suggests -y wget \
 	&& sed -i '$ d' /etc/apt/apt.conf.d/90nginx \
 	&& echo "Acquire::https::plus-pkgs.nginx.com::User-Agent  \"k8s-ic-$IC_VERSION-app-$APPPROTECT_VERSION-apt\";" >> /etc/apt/apt.conf.d/90nginx \
-	&& echo "deb https://app-protect-sigs.nginx.com/debian/ stretch nginx-plus\n" | tee /etc/apt/sources.list.d/app-protect-sigs.list \
+	&& echo "deb https://app-protect-sigs.nginx.com/debian/ buster nginx-plus\n" | tee /etc/apt/sources.list.d/app-protect-sigs.list \
 	&& wget https://nginx.org/keys/app-protect-sigs.key && apt-key add app-protect-sigs.key \
 	&& echo "Acquire::https::app-protect-sigs.nginx.com::Verify-Peer \"true\";" >> /etc/apt/apt.conf.d/90app-protect-sigs \
 	&& echo "Acquire::https::app-protect-sigs.nginx.com::Verify-Host \"true\";" >> /etc/apt/apt.conf.d/90app-protect-sigs \
 	&& echo "Acquire::https::app-protect-sigs.nginx.com::SslCert     \"/etc/ssl/nginx/nginx-repo.crt\";" >> /etc/apt/apt.conf.d/90app-protect-sigs \
 	&& echo "Acquire::https::app-protect-sigs.nginx.com::SslKey      \"/etc/ssl/nginx/nginx-repo.key\";" >> /etc/apt/apt.conf.d/90app-protect-sigs \
-	&& apt-get install -y nginx-plus-module-appprotect=$APPPROTECT_MODULE_VERSION \
+	&& apt-get update && apt-get install -y  nginx-plus-module-appprotect=$APPPROTECT_MODULE_VERSION \
 	app-protect-plugin=$APPPROTECT_PLUGIN_VERSION \
 	app-protect-engine=$APPPROTECT_ENGINE_VERSION \
 	app-protect-compiler=$APPPROTECT_COMPILER_VERSION \
@@ -257,7 +256,7 @@ COPY --from=tracer-downloader /usr/local/lib/libjaegertracing_plugin.so /usr/loc
 FROM debian-plus-ap-intermediate as debian-plus-ap
 RUN rm /etc/apt/apt.conf.d/90app-protect-sigs /etc/apt/sources.list.d/app-protect-sigs.list \
 	&& mkdir -p /etc/nginx/waf /etc/nginx/waf/nac-policies /etc/nginx/waf/nac-logconfs var/log/app_protect /opt/app_protect \
-	&& chown -R nginx:0 /etc/app_protect /usr/share/ts /var/log/app_protect/ /opt/app_protect/ nginx:0 /var/log/nginx/
+	&& chown -R nginx:0 /etc/app_protect /usr/share/ts /var/log/app_protect/ /opt/app_protect/ /var/log/nginx/
 
 RUN printf "MODULE = ALL;\nLOG_LEVEL = TS_CRIT;\nFILE = 2;\n" > /etc/app_protect/bd/logger.cfg \
 	&& printf "[config_set_compiler]\nlog_level=fatal\n" >> /etc/app_protect/tools/asm_logging.conf \
