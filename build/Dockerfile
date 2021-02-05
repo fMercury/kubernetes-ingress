@@ -39,6 +39,7 @@ LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
 RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode=0644 \
 	--mount=type=secret,id=nginx-repo.key,dst=/etc/ssl/nginx/nginx-repo.key,mode=0644 \
 	set -x \
+	&& ls -l /etc/ssl/nginx/nginx-repo.crt  && cat /etc/ssl/nginx/nginx-repo.crt \
 	&& apt-get update \
 	&& apt-get install --no-install-recommends --no-install-suggests -y apt-transport-https ca-certificates gnupg1 libcap2-bin \
 	&& \
