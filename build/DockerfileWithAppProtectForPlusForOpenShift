@@ -60,9 +60,8 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 	&& setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx \
 	          'cap_net_bind_service=+ep' /usr/sbin/nginx-debug \
 	&& yum remove -y wget \
-	&& rm -rf /etc/ssl/nginx \
 	&& rm /etc/yum.repos.d/nginx-plus-7.repo \
-	&& rm nginx_signing.key /tmp/rhel_license
+	&& rm nginx_signing.key
 
 RUN mkdir -p /var/lib/nginx \
 				/etc/nginx/stream-conf.d \
