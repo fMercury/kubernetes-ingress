@@ -145,34 +145,20 @@ FROM openshift-base AS openshift-plus
 ENV NGINX_PLUS_VERSION 23-1.el8.ngx
 ARG IC_VERSION
 
-# Install NGINX Plus
-RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode=0644 \
-	--mount=type=secret,id=nginx-repo.key,dst=/etc/ssl/nginx/nginx-repo.key,mode=0644 \
-	yum install -y wget ca-certificates \
-	&& wget https://nginx.org/keys/nginx_signing.key \
-	&& \
-	NGINX_GPGKEY=nginx_signing.key; \
-	found=''; \
-	for server in \
-	ha.pool.sks-keyservers.net \
-	hkp://p80.pool.sks-keyservers.net:80 \
-	pgp.mit.edu \
-	; do \
-	echo "Fetching GPG key $NGINX_GPGKEY from $server"; \
-	rpm --define="%_hkp_keyserver $server" --import $NGINX_GPGKEY && found=yes && break; \
-	done; \
-	test -z "$found" && echo >&2 "error: failed to fetch GPG key $NGINX_GPGKEY" && exit 1; \
-	echo "[nginx-plus]" >> /etc/yum.repos.d/nginx-plus-8.repo \
+RUN rpm --import https://nginx.org/keys/nginx_signing.key \
+	&& echo "[nginx-plus]" >> /etc/yum.repos.d/nginx-plus-8.repo \
 	&& echo "name=nginx-plus repo" >> /etc/yum.repos.d/nginx-plus-8.repo \
 	&& echo "baseurl=https://plus-pkgs.nginx.com/centos/8/\$basearch/" >> /etc/yum.repos.d/nginx-plus-8.repo \
 	&& echo "sslclientcert=/etc/ssl/nginx/nginx-repo.crt" >> /etc/yum.repos.d/nginx-plus-8.repo \
 	&& echo "sslclientkey=/etc/ssl/nginx/nginx-repo.key" >> /etc/yum.repos.d/nginx-plus-8.repo \
 	&& echo "gpgcheck=1" >> /etc/yum.repos.d/nginx-plus-8.repo \
-	&& echo "enabled=1" >> /etc/yum.repos.d/nginx-plus-8.repo \
-	&& yum install -y nginx-plus-${NGINX_PLUS_VERSION} \
-	&& yum remove -y wget \
-	&& rm /etc/yum.repos.d/nginx-plus-8.repo \
-	&& rm nginx_signing.key
+	&& echo "enabled=1" >> /etc/yum.repos.d/nginx-plus-8.repo
+
+# Install NGINX Plus
+RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode=0644 \
+	--mount=type=secret,id=nginx-repo.key,dst=/etc/ssl/nginx/nginx-repo.key,mode=0644 \
+	yum install -y ca-certificates nginx-plus-${NGINX_PLUS_VERSION}
+
 
 ############################################# Build image for Opentracing #############################################
 
