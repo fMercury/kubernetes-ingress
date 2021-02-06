@@ -38,7 +38,9 @@ LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
 RUN set -x \
 	&& apt-get update \
 	&& apt-get install --no-install-recommends --no-install-suggests -y ca-certificates gnupg wget \
-	&& wget https://nginx.org/keys/nginx_signing.key && apt-key add nginx_signing.key \
+	&& wget https://nginx.org/keys/nginx_signing.key \
+	&& gpg --no-default-keyring --keyring nginx_keyring.gpg --import nginx_signing.key \
+	&& gpg --no-default-keyring --keyring nginx_keyring.gpg --export > /etc/apt/trusted.gpg.d/nginx_signing.gpg \
 	&& echo "Acquire::https::plus-pkgs.nginx.com::Verify-Peer \"true\";" >> /etc/apt/apt.conf.d/90nginx \
 	&& echo "Acquire::https::plus-pkgs.nginx.com::Verify-Host \"true\";" >> /etc/apt/apt.conf.d/90nginx \
 	&& echo "Acquire::https::plus-pkgs.nginx.com::SslCert     \"/etc/ssl/nginx/nginx-repo.crt\";" >> /etc/apt/apt.conf.d/90nginx \
@@ -75,10 +77,12 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 	set -x \
 	&& apt-get update \
 	&& apt-get install --no-install-recommends --no-install-suggests -y gnupg wget \
+	&& wget https://nginx.org/keys/app-protect-sigs.key \
+	&& gpg --no-default-keyring --keyring app_protect_keyring.gpg --import app-protect-sigs.key \
+	&& gpg --no-default-keyring --keyring app_protect_keyring.gpg --export > /etc/apt/trusted.gpg.d/nginx_app_signing.gpg \
 	&& sed -i '$ d' /etc/apt/apt.conf.d/90nginx \
 	&& echo "Acquire::https::plus-pkgs.nginx.com::User-Agent  \"k8s-ic-$IC_VERSION-app-$APPPROTECT_VERSION-apt\";" >> /etc/apt/apt.conf.d/90nginx \
 	&& echo "deb https://app-protect-sigs.nginx.com/debian/ buster nginx-plus\n" | tee /etc/apt/sources.list.d/app-protect-sigs.list \
-	&& wget https://nginx.org/keys/app-protect-sigs.key && apt-key add app-protect-sigs.key \
 	&& echo "Acquire::https::app-protect-sigs.nginx.com::Verify-Peer \"true\";" >> /etc/apt/apt.conf.d/90app-protect-sigs \
 	&& echo "Acquire::https::app-protect-sigs.nginx.com::Verify-Host \"true\";" >> /etc/apt/apt.conf.d/90app-protect-sigs \
 	&& echo "Acquire::https::app-protect-sigs.nginx.com::SslCert     \"/etc/ssl/nginx/nginx-repo.crt\";" >> /etc/apt/apt.conf.d/90app-protect-sigs \
