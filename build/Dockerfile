@@ -35,33 +35,23 @@ ENV NGINX_NJS_VERSION 23+0.5.0-1~buster
 LABEL version=debian-nginx-plus-$NGINX_PLUS_VERSION-$IC_VERSION
 LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
 
-# Install NGINX Plus
-RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode=0644 \
-	--mount=type=secret,id=nginx-repo.key,dst=/etc/ssl/nginx/nginx-repo.key,mode=0644 \
-	set -x \
-	&& ls -l /etc/ssl/nginx/ \
+RUN set -x \
 	&& apt-get update \
-	&& apt-get install --no-install-recommends --no-install-suggests -y apt-transport-https ca-certificates gnupg1 libcap2-bin \
-	&& \
-	NGINX_GPGKEY=573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62; \
-	found=''; \
-	for server in \
-	ha.pool.sks-keyservers.net \
-	hkp://keyserver.ubuntu.com:80 \
-	hkp://p80.pool.sks-keyservers.net:80 \
-	pgp.mit.edu \
-	; do \
-	echo "Fetching GPG key $NGINX_GPGKEY from $server"; \
-	apt-key adv --keyserver "$server" --keyserver-options timeout=10 --recv-keys "$NGINX_GPGKEY" && found=yes && break; \
-	done; \
-	test -z "$found" && echo >&2 "error: failed to fetch GPG key $NGINX_GPGKEY" && exit 1; \
-	echo "Acquire::https::plus-pkgs.nginx.com::Verify-Peer \"true\";" >> /etc/apt/apt.conf.d/90nginx \
+	&& apt-get install --no-install-recommends --no-install-suggests -y ca-certificates gnupg wget \
+	&& wget https://nginx.org/keys/nginx_signing.key && apt-key add nginx_signing.key \
+	&& echo "Acquire::https::plus-pkgs.nginx.com::Verify-Peer \"true\";" >> /etc/apt/apt.conf.d/90nginx \
 	&& echo "Acquire::https::plus-pkgs.nginx.com::Verify-Host \"true\";" >> /etc/apt/apt.conf.d/90nginx \
 	&& echo "Acquire::https::plus-pkgs.nginx.com::SslCert     \"/etc/ssl/nginx/nginx-repo.crt\";" >> /etc/apt/apt.conf.d/90nginx \
 	&& echo "Acquire::https::plus-pkgs.nginx.com::SslKey      \"/etc/ssl/nginx/nginx-repo.key\";" >> /etc/apt/apt.conf.d/90nginx \
 	&& echo "Acquire::https::plus-pkgs.nginx.com::User-Agent  \"k8s-ic-$IC_VERSION-apt\";" >> /etc/apt/apt.conf.d/90nginx \
 	&& printf "deb https://plus-pkgs.nginx.com/debian buster nginx-plus\n" > /etc/apt/sources.list.d/nginx-plus.list \
-	&& apt-get update && apt-get install -y nginx-plus=${NGINX_PLUS_VERSION} nginx-plus-module-njs=${NGINX_NJS_VERSION} \
+	&& apt-get purge --auto-remove -y gnupg wget \
+	&& rm -rf /var/lib/apt/lists/*
+
+RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode=0644 \
+	--mount=type=secret,id=nginx-repo.key,dst=/etc/ssl/nginx/nginx-repo.key,mode=0644 \
+	apt-get update && apt-get install -y apt-transport-https libcap2-bin nginx-plus=${NGINX_PLUS_VERSION} nginx-plus-module-njs=${NGINX_NJS_VERSION} \
+	&& apt-get purge --auto-remove -y apt-transport-https \
 	&& rm -rf /var/lib/apt/lists/*
 
 COPY internal/configs/oidc/* /etc/nginx/oidc/
@@ -84,7 +74,7 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 	--mount=type=secret,id=nginx-repo.key,dst=/etc/ssl/nginx/nginx-repo.key,mode=0644 \
 	set -x \
 	&& apt-get update \
-	&& apt-get install --no-install-recommends --no-install-suggests -y wget \
+	&& apt-get install --no-install-recommends --no-install-suggests -y gnupg wget \
 	&& sed -i '$ d' /etc/apt/apt.conf.d/90nginx \
 	&& echo "Acquire::https::plus-pkgs.nginx.com::User-Agent  \"k8s-ic-$IC_VERSION-app-$APPPROTECT_VERSION-apt\";" >> /etc/apt/apt.conf.d/90nginx \
 	&& echo "deb https://app-protect-sigs.nginx.com/debian/ buster nginx-plus\n" | tee /etc/apt/sources.list.d/app-protect-sigs.list \
@@ -93,14 +83,19 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 	&& echo "Acquire::https::app-protect-sigs.nginx.com::Verify-Host \"true\";" >> /etc/apt/apt.conf.d/90app-protect-sigs \
 	&& echo "Acquire::https::app-protect-sigs.nginx.com::SslCert     \"/etc/ssl/nginx/nginx-repo.crt\";" >> /etc/apt/apt.conf.d/90app-protect-sigs \
 	&& echo "Acquire::https::app-protect-sigs.nginx.com::SslKey      \"/etc/ssl/nginx/nginx-repo.key\";" >> /etc/apt/apt.conf.d/90app-protect-sigs \
-	&& apt-get update && apt-get install -y  nginx-plus-module-appprotect=$APPPROTECT_MODULE_VERSION \
+	&& apt-get purge --auto-remove -y gnupg wget \
+	&& rm -rf /var/lib/apt/lists/*
+
+RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode=0644 \
+	--mount=type=secret,id=nginx-repo.key,dst=/etc/ssl/nginx/nginx-repo.key,mode=0644 \
+	apt-get update && apt-get install -y apt-transport-https nginx-plus-module-appprotect=$APPPROTECT_MODULE_VERSION \
 	app-protect-plugin=$APPPROTECT_PLUGIN_VERSION \
 	app-protect-engine=$APPPROTECT_ENGINE_VERSION \
 	app-protect-compiler=$APPPROTECT_COMPILER_VERSION \
 	app-protect=$APPPROTECT_MODULE_VERSION \
 	&& apt-get install -y app-protect-attack-signatures${APPPROTECT_SIG_VERSION:+=$APPPROTECT_SIG_VERSION} \
 	&& apt-get install -y app-protect-threat-campaigns${APPPROTECT_THREAT_CAMPAIGNS_VERSION:+=$APPPROTECT_THREAT_CAMPAIGNS_VERSION} \
-	&& apt-get purge --auto-remove -y wget \
+	&& apt-get purge --auto-remove -y apt-transport-https \
 	&& rm -rf /var/lib/apt/lists/*
 
 # Uncomment the lines below if you want to install a custom CA certificate

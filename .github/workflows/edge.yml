@@ -189,8 +189,8 @@ jobs:
           target: ${{ matrix.target }}
           tags: ${{ matrix.image }}:${{ github.sha }}
           secrets: |
-            "nginx-repo.crt=${{ secrets.KIC_NGINX_CRT }}"
-            "nginx-repo.key=${{ secrets.KIC_NGINX_KEY }}"
+            "nginx-repo.crt=${{ secrets.KIC_NGINX_AP_CRT }}"
+            "nginx-repo.key=${{ secrets.KIC_NGINX_AP_KEY }}"
           build-args: |
             BUILD_OS=${{ matrix.image }}
             PLUS=-plus
